@@ -1,5 +1,19 @@
+"use client";
+import {
+  AccountInfo,
+  InteractionRequiredAuthError,
+  InteractionStatus,
+  InteractionType,
+} from "@azure/msal-browser";
+import {
+  useIsAuthenticated,
+  useMsal,
+  useMsalAuthentication,
+} from "@azure/msal-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Card } from "ui";
+import { callMsGraph, getData, loginRequest } from "../auth-config";
 import styles from "./page.module.css";
 
 function Gradient({
@@ -50,6 +64,27 @@ const LINKS = [
 ];
 
 export default function Page(): JSX.Element {
+  const { instance, inProgress } = useMsal();
+  const isAuth = useIsAuthenticated();
+  const [account, setAccount] = useState();
+  useMsalAuthentication(InteractionType.Redirect);
+  useEffect(() => {
+    getData().then(console.log).catch(console.log);
+    if (!account && inProgress === InteractionStatus.None) {
+      callMsGraph()
+        .then((res) => {
+          setAccount(res);
+        })
+        .catch((e) => {
+          if (e instanceof InteractionRequiredAuthError) {
+            instance.acquireTokenRedirect({
+              ...loginRequest,
+              account: instance.getActiveAccount() as AccountInfo,
+            });
+          }
+        });
+    }
+  }, [account, inProgress, instance]);
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -75,7 +110,6 @@ export default function Page(): JSX.Element {
           </a>
         </div>
       </div>
-
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <div className={styles.logos}>

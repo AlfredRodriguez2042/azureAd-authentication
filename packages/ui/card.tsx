@@ -1,3 +1,4 @@
+import { Button } from "@mui/material";
 import * as React from "react";
 
 export function Card({
@@ -18,6 +19,7 @@ export function Card({
       rel="noopener noreferrer"
       target="_blank"
     >
+      <Button />
       <h2>
         {title} <span>-&gt;</span>
       </h2>
